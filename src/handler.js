@@ -72,14 +72,43 @@ const addBookHandler = (request, h) => {
 };
 
 
-//GET book data
-const getAllBooksHandler = () => ({
-    status: 'success',
-    data: {
-        books,
-    },
-});
+//GET ALL book data
+const getAllBooksHandler = (request, h) => {
+  const { reading, finished, name } = request.query;
 
+  let filteredBooks = [...books];
+
+  if (reading !== undefined) {
+      const isReading = reading === '1';
+      filteredBooks = filteredBooks.filter((book) => book.reading === isReading);
+  }
+
+  if (finished !== undefined) {
+      const isFinished = finished === '1';
+      filteredBooks = filteredBooks.filter((book) => book.finished === isFinished);
+  }
+
+  if (name) {
+      filteredBooks = filteredBooks.filter((book) => book.name.toLowerCase().includes(name.toLowerCase()));
+  }
+
+  const simplifiedBooks = filteredBooks.map((book) => {
+    return {
+      id: book.id,
+      name: book.name,
+      publisher: book.publisher,
+    };
+  });
+
+  return {
+      status: 'success',
+      data: {
+          books: simplifiedBooks,
+      },
+  };
+};
+
+// GET
 const getBookByIdHandler = (request, h) => {
     const {id} = request.params;
 
@@ -96,7 +125,7 @@ const getBookByIdHandler = (request, h) => {
 
     const response = h.response({
         status: 'fail',
-        message: 'Catatan tidak ditemukan',
+        message: 'Buku tidak ditemukan',
     });
     response.code(404);
     return response;
@@ -106,35 +135,61 @@ const getBookByIdHandler = (request, h) => {
 const editBookByIdHandler = (request, h) => {
     const {id} = request.params;
 
-    const {title, tags, body} = request.payload;
+    const { name, year, author, summary, publisher, pageCount, readPage, reading } = request.payload;
     const updatedAt = new Date().toISOString();
 
     //dapatkan dulu index array pada objek catatan sesuai id yang ditentukan
     const index = books.findIndex((book) => book.id == id);
+
+    if (index == -1) {
+      const response = h.response ({
+        status: 'fail',
+        message: 'Gagal memperbarui buku. ID tidak ditemukan',
+      });
+      response.code(404);
+      return response;
+    }
+
+    if (!name) {
+      const response = h.response ({
+        status: 'fail',
+        message: 'Gagal memperbarui buku. Mohon isi nama buku',
+      })
+      response.code(400);
+      return response;
+    }
+
+    if (readPage > pageCount) {
+      const response = h.response({
+        status: 'fail',
+        message:'Gagal memperbarui buku. readPage tidak boleh lebih besar dari pageCount',
+      })
+      response.code(400);
+      return response;
+    }
+
     if (index != -1) {
         books[index] = {
             ...books[index],
-            title,
-            tags,
-            body,
+            name,
+            year,
+            author,
+            summary,
+            publisher,
+            pageCount,
+            readPage,
+            reading,
             updatedAt,
         };
 
         const response = h.response({
             status: 'success',
-            message: 'Catatan berhasil diperbarui',
+            message: 'Buku berhasil diperbarui',
         });
         response.code(200);
         return response;
         
     }
-
-    const response = h.response({
-        status: 'fail',
-        message: 'Gagal memperbarui catatan. ID tidak ditemukan',
-    });
-    response.code(404);
-    return response;
 };
 
 const deleteBookByIdhandler = (request, h) => {
@@ -146,11 +201,18 @@ const deleteBookByIdhandler = (request, h) => {
         books.splice(index,1);
         const response = h.response ({
             status: 'success',
-            messsage: 'Catatan berhasil dihapus',
+            messsage: 'Buku berhasil dihapus',
         });
         response.code(200);
         return response;
     }
+
+    const response = h.response({
+      status:'fail',
+      message: 'Buku gagal dihapus. Id tidak ditemukan',
+    });
+    response.code(404);
+    return response;
 };
 
 module.exports = {addBookHandler, getAllBooksHandler, getBookByIdHandler, editBookByIdHandler, deleteBookByIdhandler};
