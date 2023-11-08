@@ -1,5 +1,5 @@
 const {
-  addBookHandler, getAllBooksHandler, getBookByIdHandler, editBookByIdHandler, deleteBookByIdhandler,
+  addBookHandler, getAllBooksHandler, getBookByIdHandler, editBookByIdHandler, hapusBookByIdhandler,
 } = require('./handler');
 
 const routes = [
@@ -36,7 +36,7 @@ const routes = [
   {
     method: 'DELETE',
     path: '/books/{id}',
-    handler: deleteBookByIdhandler,
+    handler: hapusBookByIdhandler,
   },
 ];
 

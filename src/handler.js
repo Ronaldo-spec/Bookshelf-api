@@ -70,27 +70,27 @@ const addBookHandler = (request, h) => {
 };
 
 // GET ALL book data
-const getAllBooksHandler = (request, h) => {
+const getAllBooksHandler = (request) => {
   const { reading, finished, name } = request.query;
 
-  let filteredBooks = [...books];
+  let filBooks = [...books];
 
   if (reading !== undefined) {
     const isReading = reading === '1';
-    filteredBooks = filteredBooks.filter((book) => book.reading === isReading);
+    filBooks = filBooks.filter((book) => book.reading === isReading);
   }
 
   if (finished !== undefined) {
     const isFinished = finished === '1';
-    filteredBooks = filteredBooks.filter((book) => book.finished === isFinished);
+    filBooks = filBooks.filter((book) => book.finished === isFinished);
   }
 
   if (name) {
-    filteredBooks = filteredBooks.filter((book) => book.name.toLowerCase().includes(name.toLowerCase()));
-    filteredBooks = filteredBooks.slice(0, 2);
+    filBooks = filBooks.filter((book) => book.name.toLowerCase().includes(name.toLowerCase()));
+    filBooks = filBooks.slice(0, 2);
   }
 
-  const simplifiedBooks = filteredBooks.map((book) => ({
+  const simplifiedBooks = filBooks.map((book) => ({
     id: book.id,
     name: book.name,
     publisher: book.publisher,
@@ -107,7 +107,7 @@ const getAllBooksHandler = (request, h) => {
 // GET by ID
 const getBookByIdHandler = (request, h) => {
   const { id } = request.params;
-  const book = books.find((book) => book.id === id);
+  const book = books.find((n) => n.id === id);
 
   if (book) {
     const response = h.response({
@@ -138,9 +138,9 @@ const editBookByIdHandler = (request, h) => {
   const updatedAt = new Date().toISOString();
 
   // dapatkan dulu index array pada objek catatan sesuai id yang ditentukan
-  const index = books.findIndex((book) => book.id == id);
+  const index = books.findIndex((book) => book.id === id);
 
-  if (index == -1) {
+  if (index === -1) {
     const response = h.response({
       status: 'fail',
       message: 'Gagal memperbarui buku. Id tidak ditemukan',
@@ -167,7 +167,7 @@ const editBookByIdHandler = (request, h) => {
     return response;
   }
 
-  if (index != -1) {
+  if (index !== -1) {
     books[index] = {
       ...books[index],
       name,
@@ -188,14 +188,15 @@ const editBookByIdHandler = (request, h) => {
     response.code(200);
     return response;
   }
+  return h.response({}).code(500);
 };
 
-const deleteBookByIdhandler = (request, h) => {
+const hapusBookByIdhandler = (request, h) => {
   const { id } = request.params;
   // dapatkan index dari objek catatan sesuai dengan id yang didapat
-  const index = books.findIndex((book) => book.id == id);
+  const index = books.findIndex((book) => book.id === id);
 
-  if (index != -1) {
+  if (index !== -1) {
     books.splice(index, 1);
     const response = h.response({
       status: 'success',
@@ -214,5 +215,5 @@ const deleteBookByIdhandler = (request, h) => {
 };
 
 module.exports = {
-  addBookHandler, getAllBooksHandler, getBookByIdHandler, editBookByIdHandler, deleteBookByIdhandler,
+  addBookHandler, getAllBooksHandler, getBookByIdHandler, editBookByIdHandler, hapusBookByIdhandler,
 };
