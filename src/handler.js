@@ -90,7 +90,9 @@ const getAllBooksHandler = (request, h) => {
 
   if (name) {
       filteredBooks = filteredBooks.filter((book) => book.name.toLowerCase().includes(name.toLowerCase()));
+      filteredBooks = filteredBooks.slice(0, 2);
   }
+
 
   const simplifiedBooks = filteredBooks.map((book) => {
     return {
@@ -108,28 +110,30 @@ const getAllBooksHandler = (request, h) => {
   };
 };
 
-// GET
+// GET by ID
 const getBookByIdHandler = (request, h) => {
-    const {id} = request.params;
+  const { id } = request.params;
+  const book = books.find((book) => book.id === id);
 
-    const book = books.filter((n) => n.id == id)[0];
+  if (book) {
+      const response = h.response({
+          status: 'success',
+          data: {
+              book,
+          },
+      });
+      response.code(200);
+      return response;
+  }
 
-    if (book != undefined) {
-        return {
-            status: 'success',
-            data: {
-                book,
-            },
-        };
-    }
-
-    const response = h.response({
-        status: 'fail',
-        message: 'Buku tidak ditemukan',
-    });
-    response.code(404);
-    return response;
+  const response = h.response({
+      status: 'fail',
+      message: 'Buku tidak ditemukan',
+  });
+  response.code(404);
+  return response;
 };
+
 
 // Edit Book
 const editBookByIdHandler = (request, h) => {
@@ -144,7 +148,7 @@ const editBookByIdHandler = (request, h) => {
     if (index == -1) {
       const response = h.response ({
         status: 'fail',
-        message: 'Gagal memperbarui buku. ID tidak ditemukan',
+        message: 'Gagal memperbarui buku. Id tidak ditemukan',
       });
       response.code(404);
       return response;
@@ -200,8 +204,8 @@ const deleteBookByIdhandler = (request, h) => {
     if (index != -1) {
         books.splice(index,1);
         const response = h.response ({
-            status: 'success',
-            messsage: 'Buku berhasil dihapus',
+            status: "success",
+            message: "Buku berhasil dihapus",
         });
         response.code(200);
         return response;
