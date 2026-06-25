@@ -1,15 +1,20 @@
 {
   "name": "bookshelf-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "RESTful Bookshelf API built with Node.js and Hapi.js.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \"No automated tests configured\" && exit 0",
     "start": "node ./src/server.js",
     "lint": "eslint ./"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "nodejs",
+    "hapi",
+    "rest-api",
+    "bookshelf"
+  ],
+  "author": "Ronaldo Firmansyah",
   "license": "ISC",
   "dependencies": {
     "@hapi/hapi": "^21.3.2",
