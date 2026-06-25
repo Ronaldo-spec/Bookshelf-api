@@ -7,11 +7,6 @@ const addBookHandler = (request, h) => {
     name, year, author, summary, publisher, pageCount, readPage, reading,
   } = request.payload;
 
-  const id = nanoid(16);
-  const insertedAt = new Date().toISOString();
-  const updatedAt = insertedAt;
-  const finished = pageCount === readPage;
-
   if (!name) {
     const response = h.response({
       status: 'fail',
@@ -30,7 +25,13 @@ const addBookHandler = (request, h) => {
     return response;
   }
 
+  const id = nanoid(16);
+  const insertedAt = new Date().toISOString();
+  const updatedAt = insertedAt;
+  const finished = pageCount === readPage;
+
   const newBook = {
+    id,
     name,
     year,
     author,
@@ -40,14 +41,13 @@ const addBookHandler = (request, h) => {
     readPage,
     finished,
     reading,
-    id,
     insertedAt,
     updatedAt,
   };
 
   books.push(newBook);
 
-  const isSuccess = books.filter((book) => book.id === id).length > 0;
+  const isSuccess = books.some((book) => book.id === id);
 
   if (isSuccess) {
     const response = h.response({
@@ -63,9 +63,9 @@ const addBookHandler = (request, h) => {
 
   const response = h.response({
     status: 'fail',
-    message: 'Gagal menambahkan buku. Mohon isi nama buku',
+    message: 'Buku gagal ditambahkan',
   });
-  response.code(400);
+  response.code(500);
   return response;
 };
 
@@ -73,24 +73,25 @@ const addBookHandler = (request, h) => {
 const getAllBooksHandler = (request) => {
   const { reading, finished, name } = request.query;
 
-  let filBooks = [...books];
+  let filteredBooks = [...books];
 
   if (reading !== undefined) {
     const isReading = reading === '1';
-    filBooks = filBooks.filter((book) => book.reading === isReading);
+    filteredBooks = filteredBooks.filter((book) => book.reading === isReading);
   }
 
   if (finished !== undefined) {
     const isFinished = finished === '1';
-    filBooks = filBooks.filter((book) => book.finished === isFinished);
+    filteredBooks = filteredBooks.filter((book) => book.finished === isFinished);
   }
 
   if (name) {
-    filBooks = filBooks.filter((book) => book.name.toLowerCase().includes(name.toLowerCase()));
-    filBooks = filBooks.slice(0, 2);
+    filteredBooks = filteredBooks.filter((book) => (
+      book.name.toLowerCase().includes(name.toLowerCase())
+    ));
   }
 
-  const simplifiedBooks = filBooks.map((book) => ({
+  const simplifiedBooks = filteredBooks.map((book) => ({
     id: book.id,
     name: book.name,
     publisher: book.publisher,
@@ -137,7 +138,6 @@ const editBookByIdHandler = (request, h) => {
   } = request.payload;
   const updatedAt = new Date().toISOString();
 
-  // dapatkan dulu index array pada objek catatan sesuai id yang ditentukan
   const index = books.findIndex((book) => book.id === id);
 
   if (index === -1) {
@@ -167,33 +167,32 @@ const editBookByIdHandler = (request, h) => {
     return response;
   }
 
-  if (index !== -1) {
-    books[index] = {
-      ...books[index],
-      name,
-      year,
-      author,
-      summary,
-      publisher,
-      pageCount,
-      readPage,
-      reading,
-      updatedAt,
-    };
+  const finished = pageCount === readPage;
 
-    const response = h.response({
-      status: 'success',
-      message: 'Buku berhasil diperbarui',
-    });
-    response.code(200);
-    return response;
-  }
-  return h.response({}).code(500);
+  books[index] = {
+    ...books[index],
+    name,
+    year,
+    author,
+    summary,
+    publisher,
+    pageCount,
+    readPage,
+    finished,
+    reading,
+    updatedAt,
+  };
+
+  const response = h.response({
+    status: 'success',
+    message: 'Buku berhasil diperbarui',
+  });
+  response.code(200);
+  return response;
 };
 
 const hapusBookByIdhandler = (request, h) => {
   const { id } = request.params;
-  // dapatkan index dari objek catatan sesuai dengan id yang didapat
   const index = books.findIndex((book) => book.id === id);
 
   if (index !== -1) {
@@ -215,5 +214,9 @@ const hapusBookByIdhandler = (request, h) => {
 };
 
 module.exports = {
-  addBookHandler, getAllBooksHandler, getBookByIdHandler, editBookByIdHandler, hapusBookByIdhandler,
+  addBookHandler,
+  getAllBooksHandler,
+  getBookByIdHandler,
+  editBookByIdHandler,
+  hapusBookByIdhandler,
 };
